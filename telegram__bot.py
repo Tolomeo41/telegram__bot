@@ -120,10 +120,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     benvenuto = (
         f"👋 Ciao *{update.effective_user.first_name}*! Benvenutə nel Fitness Bot 💪\n\n"
         "Puoi fare tutte queste azioni:\n"
-        "• `/help` – Apri il menu interattivo\n"
-        "• `/registrami AAAA-MM-GG Nome Cognome` – Registra o aggiorna la tua scadenza (solo admin)\n"
-        "• `/scadenza` – Vedi la tua data di scadenza\n"
-        "• `/lista_iscritti` – Lista completa degli iscritti (solo admin)\n\n"
         "Se vuoi video, consigli o controllare la scadenza, usa i pulsanti qui sotto 👇"
     )
 
