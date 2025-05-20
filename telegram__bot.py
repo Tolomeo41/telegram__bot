@@ -119,7 +119,6 @@ def menu_keyboard():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     benvenuto = (
         f"👋 Ciao *{update.effective_user.first_name}*! Benvenutə nel Fitness Bot 💪\n\n"
-        "Puoi fare tutte queste azioni:\n"
         "Se vuoi video, consigli o controllare la scadenza, usa i pulsanti qui sotto 👇"
     )
 
