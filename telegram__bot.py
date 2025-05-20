@@ -14,7 +14,7 @@ load_dotenv()
 # ✅ Legge il BOT_TOKEN dalle variabili d'ambiente (necessario per Render)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-DB_FILE = 'abbonamenti.db'
+DB_FILE = '/tmp/abbonamenti.db'
 AUTHORIZED_USERS = [435544119]  # Inserisci qui gli ID degli admin
 
 # ---------- DB ----------
