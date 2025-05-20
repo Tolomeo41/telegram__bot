@@ -6,18 +6,16 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 )
 import nest_asyncio, asyncio
-
-# ✅ Carica variabili d'ambiente (utile anche in locale con un file .env)
 from dotenv import load_dotenv
+from aiohttp import web
+
+# ✅ Carica variabili ambiente (.env per locale o ambiente Render)
 load_dotenv()
-
-# ✅ Legge il BOT_TOKEN dalle variabili d'ambiente (necessario per Render)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 DB_FILE = '/tmp/abbonamenti.db'
-AUTHORIZED_USERS = [435544119]  # Inserisci qui gli ID degli admin
+AUTHORIZED_USERS = [435544119]  # Sostituisci con i tuoi ID admin
 
-# ---------- DB ----------
+# ---------- DATABASE ----------
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -33,7 +31,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ---------- FUNZIONE DI RISPOSTA GENERICA ----------
+# ---------- RISPOSTA UNIFICATA ----------
 async def safe_reply(update: Update, text: str, **kwargs):
     if update.callback_query:
         await update.callback_query.message.reply_text(text, **kwargs)
@@ -121,7 +119,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👋 Ciao *{update.effective_user.first_name}*! Benvenutə nel Fitness Bot 💪\n\n"
         "Se vuoi video, consigli o controllare la scadenza, usa i pulsanti qui sotto 👇"
     )
-
     await safe_reply(update, benvenuto, reply_markup=menu_keyboard(), parse_mode="Markdown")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -198,11 +195,31 @@ async def reminder_foto_bisettimanale(context: ContextTypes.DEFAULT_TYPE):
         except: pass
     conn.close()
 
+# ---------- PING SERVER ----------
+async def handle_ping(request):
+    return web.Response(text="🏓 Bot attivo!")
+
+def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    app.router.add_get("/ping", handle_ping)
+    runner = web.AppRunner(app)
+
+    async def run_server():
+        await runner.setup()
+        site = web.TCPSite(runner, "0.0.0.0", int(os.getenv("PORT", 8080)))
+        await site.start()
+        print("🌐 Web server in ascolto su /ping")
+
+    return run_server()
+
 # ---------- MAIN ----------
 async def main():
     init_db()
     if not BOT_TOKEN:
-        raise ValueError("❌ BOT_TOKEN non trovato! Assicurati che sia impostato tra le variabili ambiente su Render.")
+        raise ValueError("❌ BOT_TOKEN non trovato!")
+
+    web_server = start_web_server()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler('start', start))
@@ -218,9 +235,12 @@ async def main():
     jq.run_daily(reminder_foto_bisettimanale, time=time(9, 0, 0), days=(6,))
 
     print("🤖 Il bot è avviato e funzionante!")
-    await app.run_polling()
+    await asyncio.gather(
+        app.run_polling(),
+        web_server()
+    )
 
-# ---------- START ----------
+# ---------- AVVIO ----------
 if __name__ == '__main__':
     nest_asyncio.apply()
     asyncio.run(main())
